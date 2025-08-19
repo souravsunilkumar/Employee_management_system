@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme{
+  --color-white: #f5fff5;
+  --color-black: #010203;
+
+  --font-pbold: 'Poppins-Bold';
+  --font-pmedium: 'Poppins-Medium';
+  --font-pregular: 'Poppins-Regular';
+  --font-psmbold: 'Poppins-SemiBold';
+}
+
+body{
+  @apply bg-white font-pregular text-black;
+}
