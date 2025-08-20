@@ -24,7 +24,10 @@ const UpdateEmployeePage = () => {
         image: '',
         mobile: '',
         email: '',
-        address: ''
+        address: '',
+        hasLoginAccess: false,
+        password: '',
+        userType: 'employee'
     })
 
     // Fetch employee data when component mounts
@@ -47,7 +50,10 @@ const UpdateEmployeePage = () => {
                     image: employeeData.image || '',
                     mobile: employeeData.mobile || '',
                     email: employeeData.email || '',
-                    address: employeeData.address || ''
+                    address: employeeData.address || '',
+                    hasLoginAccess: employeeData.hasLoginAccess || false,
+                    password: '', // Don't populate password for security reasons
+                    userType: employeeData.userType || 'employee'
                 })
             } catch (error) {
                 toast.error(error?.response?.data?.error || "Failed to fetch employee data")
@@ -67,7 +73,25 @@ const UpdateEmployeePage = () => {
         mobile: yup.string().required("Mobile No. is required"),
         address: yup.string().required("Address is required"),
         image: yup.string().required("Image URL is required"),
-        email: yup.string().required("Email is required").email("Enter valid Email")
+        email: yup.string().required("Email is required").email("Enter valid Email"),
+        hasLoginAccess: yup.boolean(),
+        password: yup.string().when(['hasLoginAccess', 'password'], {
+            is: (hasLoginAccess, password) => hasLoginAccess && !password,
+            then: () => yup.string().test(
+                'password-required-if-new',
+                'Password is required when enabling login access for the first time',
+                function(value) {
+                    // If we're enabling login access for the first time, require a password
+                    const { hasLoginAccess, password } = this.parent;
+                    if (hasLoginAccess && !initialValues.hasLoginAccess) {
+                        return Boolean(value);
+                    }
+                    return true;
+                }
+            ).min(6, 'Password must be at least 6 characters'),
+            otherwise: () => yup.string().notRequired()
+        }),
+        userType: yup.string().oneOf(['employee', 'manager']).required('User type is required')
     })
 
     const TestData = () => {
@@ -80,9 +104,11 @@ const UpdateEmployeePage = () => {
                 mobile: faker.number.int({ min: 1000000000, max: 9999999999 }),
                 email: faker.internet.email(),
                 address: faker.location.streetAddress(),
+                hasLoginAccess: Math.random() > 0.5, // 50% chance of having login access
+                password: faker.internet.password(8),
+                userType: 'employee'
             }
         )
-
     }
 
     const onSubmitHandler = async (values, helpers) => {
@@ -224,6 +250,59 @@ const UpdateEmployeePage = () => {
                                     placeholder="Enter employee address" 
                                 />
                                 <ErrorMessage name="address" component="p" className="text-red-500 text-xs mt-1" />
+                            </div>
+                            
+                            {/* Login Access Section */}
+                            <div className="mt-6 border-t pt-6">
+                                <h3 className="text-lg font-medium text-gray-900 mb-4">Employee Login Access</h3>
+                                
+                                <div className="flex items-center mb-4">
+                                    <Field 
+                                        type="checkbox" 
+                                        id="hasLoginAccess"
+                                        name="hasLoginAccess" 
+                                        className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" 
+                                    />
+                                    <label htmlFor="hasLoginAccess" className="ml-2 block text-sm text-gray-700">
+                                        Enable login access for this employee
+                                    </label>
+                                </div>
+                                
+                                <Field name="hasLoginAccess">
+                                    {({ field, form }) => {
+                                        const showPasswordField = form.values.hasLoginAccess;
+                                        const isNewLoginAccess = form.values.hasLoginAccess && !initialValues.hasLoginAccess;
+                                        
+                                        return showPasswordField ? (
+                                            <div className="mb-4">
+                                                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                                                    {isNewLoginAccess ? (
+                                                        <>
+                                                            Password <span className="text-red-500">*</span>
+                                                        </>
+                                                    ) : (
+                                                        <>New Password <span className="text-gray-500">(optional)</span></>
+                                                    )}
+                                                </label>
+                                                <Field 
+                                                    type="password" 
+                                                    id="password"
+                                                    name="password" 
+                                                    className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
+                                                    placeholder={isNewLoginAccess ? "Enter password for employee login" : "Enter new password (leave blank to keep current)"} 
+                                                />
+                                                <ErrorMessage name="password" component="p" className="text-red-500 text-xs mt-1" />
+                                                <p className="text-xs text-gray-500 mt-1">
+                                                    {isNewLoginAccess ? 
+                                                        "Password must be at least 6 characters long" : 
+                                                        "Leave blank to keep the current password unchanged"}
+                                                </p>
+                                            </div>
+                                        ) : null;
+                                    }}
+                                </Field>
+                                
+                                <Field type="hidden" name="userType" value="employee" />
                             </div>
                             
                             {/* Action Buttons */}

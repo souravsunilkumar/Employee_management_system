@@ -21,10 +21,14 @@ export const MainContextProvider = ({ children }) => {
 
     const logoutHandler = () => {
         localStorage.removeItem("token")
+        localStorage.removeItem("userType")
+        
+        // Dispatch a custom event to notify components about logout
+        window.dispatchEvent(new Event('app-logout'))
+        
         navigate("/login")
         dispatch(removeUser())
         toast.success("Logout Success")
-
     }
 
 

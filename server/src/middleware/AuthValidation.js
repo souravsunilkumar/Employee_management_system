@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const jwt_auth_scret = "@#$%^&()(^^&*()";
+const config = require("../config/config");
 
 exports.AuthValidationMiddleware = (req, res, next) => {
   try {
@@ -12,8 +12,18 @@ exports.AuthValidationMiddleware = (req, res, next) => {
     if (!token) {
       throw new Error("Enter Valid Token");
     }
-    const payload = jwt.verify(token, jwt_auth_scret);
+    const payload = jwt.verify(token, config.jwt_auth_secret);
+    
+    // Add user info to request object
     req.user = payload.userId;
+    req.userType = payload.userType;
+    req.role = payload.role;
+    
+    // If it's an employee, also add the manager ID
+    if (payload.userType === config.userTypes.EMPLOYEE) {
+      req.managerId = payload.managerId;
+    }
+    
     next();
   } catch (error) {
     res.status(400).send({ error: error.message });

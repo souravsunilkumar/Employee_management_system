@@ -1,46 +1,63 @@
 import React, { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { AuthSlicePath } from '../redux/slice/auth.slice'
 import { MdDashboard } from 'react-icons/md'
-import { FaUser } from 'react-icons/fa'
-import { FaUsersLine } from 'react-icons/fa6'
+import { FaUser, FaUsers, FaUserPlus } from 'react-icons/fa'
 import clsx from 'clsx'
+import { axiosClient } from '../utils/axiosClient'
+import { toast } from 'react-toastify'
+import { useMainContext } from '../context/mainContext'
 
 const SidebarItemList = [
     {
         name: 'Dashboard',
-        link: '/',
+        link: '/manager/dashboard',
         Icon: MdDashboard
     },
     {
         name: 'Add Employee',
-        link: '/add-employee',
-        Icon: FaUser
+        link: '/manager/add-employee',
+        Icon: FaUserPlus
     },
     {
         name: 'All Employees',
-        link: '/all-employees',
-        Icon: FaUsersLine
+        link: '/manager/employees',
+        Icon: FaUsers
     },
 ]
 
 const ProtectedLayout = () => {
-
-    const user = useSelector(AuthSlicePath)
     const [loading, setLoading] = useState(true)
     const { pathname } = useLocation()
     const navigate = useNavigate()
+    const { user, setUser } = useMainContext()
+    
     useEffect(() => {
-
-        if (!user) {
-            navigate("/login")
-
-        } else {
-            setLoading(false)
+        const checkAuth = async () => {
+            try {
+                setLoading(true)
+                const token = localStorage.getItem('token')
+                const userType = localStorage.getItem('userType')
+                
+                if (!token || userType !== 'manager') {
+                    navigate('/login')
+                    return
+                }
+                
+                // Verify token and get user profile
+                const response = await axiosClient.get('/profile')
+                console.log('Profile data:', response.data)
+                setLoading(false)
+            } catch (error) {
+                console.error('Auth error:', error)
+                localStorage.removeItem('token')
+                localStorage.removeItem('userType')
+                localStorage.removeItem('role')
+                navigate('/login')
+            }
         }
-
-    }, [user])
+        
+        checkAuth()
+    }, [navigate])
 
     if (loading) {
         return <div>Loading...</div>

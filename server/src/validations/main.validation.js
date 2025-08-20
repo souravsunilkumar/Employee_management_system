@@ -9,6 +9,7 @@ exports.registerUserValidation = [
     .withMessage("Enter valid Email")
     .toLowerCase(),
   body("password").notEmpty().withMessage("Password is required"),
+  body("role").optional().isIn(["admin", "manager"]).withMessage("Role must be either admin or manager"),
 ];
 
 exports.loginUserValidation = [
@@ -19,6 +20,7 @@ exports.loginUserValidation = [
     .withMessage("Enter valid Email")
     .toLowerCase(),
   body("password").notEmpty().withMessage("Password is required"),
+  body("userType").optional().isIn(["employee", "manager"]).withMessage("User type must be either employee or manager"),
 ];
 
 exports.addEmpValidation = [
@@ -34,6 +36,14 @@ exports.addEmpValidation = [
     .isEmail()
     .withMessage("Enter valid Email")
     .toLowerCase(),
+  body("hasLoginAccess").optional().isBoolean().withMessage("hasLoginAccess must be a boolean"),
+  body("password").optional().custom((value, { req }) => {
+    if (req.body.hasLoginAccess && !value) {
+      throw new Error("Password is required when hasLoginAccess is true");
+    }
+    return true;
+  }),
+  body("userType").optional().isIn(["employee", "manager"]).withMessage("User type must be either employee or manager"),
 ];
 
 exports.empId = [

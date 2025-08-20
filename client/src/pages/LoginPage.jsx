@@ -8,12 +8,14 @@ import CustomLoaderButton from '../components/CustomLoaderButton'
 import { Link, useNavigate } from 'react-router-dom'
 import { axiosClient } from '../utils/axiosClient'
 import { useMainContext } from '../context/mainContext'
+import { FaUserTie, FaUserCog } from 'react-icons/fa'
 
 
 const LoginPage = () => {
     const [isShow, setIsShow] = useState(false)
     const [captcha, setCaptcha] = useState('')
     const [loading, setLoading] = useState(false)
+    const [userType, setUserType] = useState('manager') // Default to manager login
     const navigate = useNavigate()
 
     const { fetchUserProfile } = useMainContext()
@@ -21,12 +23,14 @@ const LoginPage = () => {
         email: '',
         password: '',
         captcha: '',
+        userType: 'manager'
     }
 
     const validationSchema = yup.object({
         email: yup.string().email('Email must be valid').required('Email is required'),
         password: yup.string().required('Password is required'),
         captcha: yup.string().required('Captcha is required'),
+        userType: yup.string().oneOf(['employee', 'manager']).required('User type is required')
     })
 
     const onSubmitHandler = async (values, helpers) => {
@@ -38,19 +42,32 @@ const LoginPage = () => {
                 return
             }
 
-            delete values.captcha
-            const response = await axiosClient.post('/login', values)
+            // Prepare login data
+            const loginData = {
+                email: values.email,
+                password: values.password,
+                userType: values.userType
+            }
+            
+            const response = await axiosClient.post('/login', loginData)
             const data = await response.data
 
+            // Store auth data in localStorage
             localStorage.setItem("token", data.token)
+            localStorage.setItem("userType", data.userType)
+            localStorage.setItem("role", data.role || '')
+            
             toast.success(data.message)
             await fetchUserProfile()
-            navigate("/")
+            
+            // Redirect based on user type
+            if (data.userType === 'employee') {
+                navigate("/employee/dashboard")
+            } else {
+                navigate("/manager/dashboard")
+            }
+            
             helpers.resetForm()
-
-
-
-            toast.success('Login Successful')
         } catch (error) {
             toast.error(error?.response?.data?.error || error.message)
         } finally {
@@ -79,84 +96,124 @@ const LoginPage = () => {
                     <p className="text-center text-white/80 mt-1">Sign in to your account</p>
                 </div>
 
+                {/* User Type Selection */}
+                <div className="bg-gray-100 p-3 flex">
+                    <div 
+                        onClick={() => setUserType('manager')} 
+                        className={`flex-1 flex flex-col items-center justify-center p-3 rounded cursor-pointer transition-all ${userType === 'manager' ? 'bg-white shadow-md' : 'hover:bg-gray-200'}`}
+                    >
+                        <FaUserTie className="text-2xl text-blue-600 mb-1" />
+                        <span className="text-sm font-medium">Manager</span>
+                    </div>
+                    <div 
+                        onClick={() => setUserType('employee')} 
+                        className={`flex-1 flex flex-col items-center justify-center p-3 rounded cursor-pointer transition-all ${userType === 'employee' ? 'bg-white shadow-md' : 'hover:bg-gray-200'}`}
+                    >
+                        <FaUserCog className="text-2xl text-blue-600 mb-1" />
+                        <span className="text-sm font-medium">Employee</span>
+                    </div>
+                </div>
+
                 <Formik
                     validationSchema={validationSchema}
-                    initialValues={initialValues}
+                    initialValues={{...initialValues, userType}}
                     onSubmit={onSubmitHandler}
+                    enableReinitialize
                 >
-                    <Form className="p-6">
-                        {/* Email Field */}
-                        <div className="mb-4">
-                            <label htmlFor="email" className="block text-sm font-pmedium text-gray-700 mb-1">Email Address</label>
-                            <Field
-                                name="email"
-                                type="email"
-                                className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                                placeholder="Enter your email"
-                            />
-                            <ErrorMessage name="email" className="text-red-500 text-xs mt-1" component={'p'} />
-                        </div>
-
-                        {/* Password Field */}
-                        <div className="mb-4">
-                            <label htmlFor="password" className="block text-sm font-pmedium text-gray-700 mb-1">Password</label>
-                            <div className="flex w-full border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-primary focus-within:border-transparent transition-all">
-                                <Field
-                                    name="password"
-                                    type={isShow ? "text" : "password"}
-                                    className="py-2 px-3 w-full outline-none"
-                                    placeholder="Enter your password"
-                                />
-                                <button
-                                    type='button'
-                                    onClick={() => setIsShow(!isShow)}
-                                    className="px-3 text-gray-500 hover:text-gray-700 transition-colors"
-                                    aria-label={isShow ? "Hide password" : "Show password"}
-                                >
-                                    {isShow ? <FaEye /> : <FaEyeSlash />}
-                                </button>
-                            </div>
-                            <ErrorMessage name="password" className="text-red-500 text-xs mt-1" component={'p'} />
-                        </div>
-
-                        {/* Captcha Field */}
-                        <div className="mb-5">
-                            <label className="block text-sm font-pmedium text-gray-700 mb-1">Captcha Verification</label>
-                            <div className="flex items-center gap-3">
-                                <div className="flex-shrink-0 bg-gray-100 p-3 rounded-lg font-pbold text-lg text-center w-24">
-                                    {captcha}
-                                </div>
-                                <button
-                                    type='button'
-                                    onClick={generateCaptcha}
-                                    className='p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors'
-                                    aria-label="Refresh captcha"
-                                >
-                                    <HiRefresh className="text-gray-600" />
-                                </button>
-                                <div className="flex-grow">
+                    {({setFieldValue}) => {
+                        // Update form value when userType state changes
+                        React.useEffect(() => {
+                            setFieldValue('userType', userType);
+                        }, [userType, setFieldValue]);
+                        
+                        return (
+                            <Form className="p-6">
+                                {/* Hidden User Type Field */}
+                                <Field type="hidden" name="userType" />
+                                
+                                {/* Email Field */}
+                                <div className="mb-4">
+                                    <label htmlFor="email" className="block text-sm font-pmedium text-gray-700 mb-1">Email Address</label>
                                     <Field
-                                        placeholder="Enter result"
-                                        name="captcha"
+                                        name="email"
+                                        type="email"
                                         className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                                        placeholder="Enter your email"
                                     />
-                                    <ErrorMessage name="captcha" className="text-red-500 text-xs mt-1" component={'p'} />
+                                    <ErrorMessage name="email" className="text-red-500 text-xs mt-1" component={'p'} />
                                 </div>
-                            </div>
-                        </div>
 
-                        {/* Login Button */}
-                        <div className="mb-4">
-                            <CustomLoaderButton isLoading={loading} text="Sign In" />
-                        </div>
+                                {/* Password Field */}
+                                <div className="mb-4">
+                                    <label htmlFor="password" className="block text-sm font-pmedium text-gray-700 mb-1">Password</label>
+                                    <div className="flex w-full border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-primary focus-within:border-transparent transition-all">
+                                        <Field
+                                            name="password"
+                                            type={isShow ? "text" : "password"}
+                                            className="py-2 px-3 w-full outline-none"
+                                            placeholder="Enter your password"
+                                        />
+                                        <button
+                                            type='button'
+                                            onClick={() => setIsShow(!isShow)}
+                                            className="px-3 text-gray-500 hover:text-gray-700 transition-colors"
+                                            aria-label={isShow ? "Hide password" : "Show password"}
+                                        >
+                                            {isShow ? <FaEye /> : <FaEyeSlash />}
+                                        </button>
+                                    </div>
+                                    <ErrorMessage name="password" className="text-red-500 text-xs mt-1" component={'p'} />
+                                </div>
 
-                        {/* Register Link */}
-                        <div className="text-center text-sm">
-                            <p>
-                                Don't have an account? <Link to='/register' className="font-psmbold text-primary hover:text-primary-dark transition-colors">Create Account</Link>
-                            </p>
-                        </div>
-                    </Form>
+                                {/* Captcha Field */}
+                                <div className="mb-5">
+                                    <label className="block text-sm font-pmedium text-gray-700 mb-1">Captcha Verification</label>
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex-shrink-0 bg-gray-100 p-3 rounded-lg font-pbold text-lg text-center w-24">
+                                            {captcha}
+                                        </div>
+                                        <button
+                                            type='button'
+                                            onClick={generateCaptcha}
+                                            className='p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors'
+                                            aria-label="Refresh captcha"
+                                        >
+                                            <HiRefresh className="text-gray-600" />
+                                        </button>
+                                        <div className="flex-grow">
+                                            <Field
+                                                placeholder="Enter result"
+                                                name="captcha"
+                                                className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                                            />
+                                            <ErrorMessage name="captcha" className="text-red-500 text-xs mt-1" component={'p'} />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Login Button */}
+                                <div className="mb-4">
+                                    <CustomLoaderButton isLoading={loading} text={`Sign In as ${userType === 'manager' ? 'Manager' : 'Employee'}`} />
+                                </div>
+
+                                {/* Register Link - Only show for managers */}
+                                {userType === 'manager' && (
+                                    <div className="text-center text-sm">
+                                        <p>
+                                            Don't have an account? <Link to='/register' className="font-psmbold text-primary hover:text-primary-dark transition-colors">Create Account</Link>
+                                        </p>
+                                    </div>
+                                )}
+                                
+                                {/* Help text for employees */}
+                                {userType === 'employee' && (
+                                    <div className="text-center text-sm mt-2 text-gray-600">
+                                        <p>Employees need to be registered by a manager first</p>
+                                    </div>
+                                )}
+                            </Form>
+                        );
+                    }}
                 </Formik>
             </div>
         </div>

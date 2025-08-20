@@ -14,14 +14,16 @@ const AddEmployeePage = () => {
     const { fetchUserProfile } = useMainContext()
 
     const [initialValues, setInitialValues] = useState({
-
         name: '',
         role: '',
         salary: 0,
         image: '',
         mobile: '',
         email: '',
-        address: ''
+        address: '',
+        hasLoginAccess: false,
+        password: '',
+        userType: 'employee'
     })
 
     const validationSchema = yup.object({
@@ -31,7 +33,14 @@ const AddEmployeePage = () => {
         mobile: yup.string().required("Mobile No. is required"),
         address: yup.string().required("Address is required"),
         image: yup.string().required("Image URL is required"),
-        email: yup.string().required("Email is required").email("Enter valid Email")
+        email: yup.string().required("Email is required").email("Enter valid Email"),
+        hasLoginAccess: yup.boolean(),
+        password: yup.string().when('hasLoginAccess', {
+            is: true,
+            then: () => yup.string().required('Password is required when login access is enabled').min(6, 'Password must be at least 6 characters'),
+            otherwise: () => yup.string().notRequired()
+        }),
+        userType: yup.string().oneOf(['employee', 'manager']).required('User type is required')
     })
 
     const TestData = () => {
@@ -44,9 +53,11 @@ const AddEmployeePage = () => {
                 mobile: faker.number.int({ min: 1000000000, max: 9999999999 }),
                 email: faker.internet.email(),
                 address: faker.location.streetAddress(),
+                hasLoginAccess: Math.random() > 0.5, // 50% chance of having login access
+                password: faker.internet.password(8),
+                userType: 'employee'
             }
         )
-
     }
 
     const onSubmitHandler = async (values, helpers) => {
@@ -193,6 +204,47 @@ const AddEmployeePage = () => {
                                 placeholder="Enter employee address" 
                             />
                             <ErrorMessage name="address" component="p" className="text-red-500 text-xs mt-1" />
+                        </div>
+                        
+                        {/* Login Access Section */}
+                        <div className="mt-6 border-t pt-6">
+                            <h3 className="text-lg font-medium text-gray-900 mb-4">Employee Login Access</h3>
+                            
+                            <div className="flex items-center mb-4">
+                                <Field 
+                                    type="checkbox" 
+                                    id="hasLoginAccess"
+                                    name="hasLoginAccess" 
+                                    className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" 
+                                />
+                                <label htmlFor="hasLoginAccess" className="ml-2 block text-sm text-gray-700">
+                                    Enable login access for this employee
+                                </label>
+                            </div>
+                            
+                            <Field name="hasLoginAccess">
+                                {({ field, form }) => {
+                                    const showPasswordField = form.values.hasLoginAccess;
+                                    return showPasswordField ? (
+                                        <div className="mb-4">
+                                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                                                Password <span className="text-red-500">*</span>
+                                            </label>
+                                            <Field 
+                                                type="password" 
+                                                id="password"
+                                                name="password" 
+                                                className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
+                                                placeholder="Enter password for employee login" 
+                                            />
+                                            <ErrorMessage name="password" component="p" className="text-red-500 text-xs mt-1" />
+                                            <p className="text-xs text-gray-500 mt-1">Password must be at least 6 characters long</p>
+                                        </div>
+                                    ) : null;
+                                }}
+                            </Field>
+                            
+                            <Field type="hidden" name="userType" value="employee" />
                         </div>
                         
                         {/* Submit Button */}
