@@ -49,7 +49,8 @@ const LoginPage = () => {
                 userType: values.userType
             }
             
-            const response = await axiosClient.post('/login', loginData)
+            // Use the full path with /api/v1 prefix
+            const response = await axiosClient.post('/api/v1/login', loginData)
             const data = await response.data
 
             // Store auth data in localStorage
