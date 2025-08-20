@@ -2,20 +2,27 @@ import React, { useEffect, useState } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { toast } from 'react-toastify';
+import { useDispatch, useSelector } from 'react-redux';
 import { axiosClient } from '../utils/axiosClient';
-import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaBriefcase, FaMoneyBillWave } from 'react-icons/fa';
+import { fetchTaskStats } from '../redux/taskSlice';
+import AIChatbot from '../components/AIChatbot';
+import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaBriefcase, FaMoneyBillWave, FaTasks, FaClock, FaCheckCircle, FaRobot } from 'react-icons/fa';
 import CustomLoaderButton from '../components/CustomLoaderButton';
 import { Link } from 'react-router-dom';
 
 const EmployeeDashboardPage = () => {
+    const dispatch = useDispatch();
+    const { taskStats } = useSelector(state => state.tasks);
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [updateLoading, setUpdateLoading] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
+    const [showChatbot, setShowChatbot] = useState(false);
 
     useEffect(() => {
         fetchEmployeeProfile();
-    }, []);
+        dispatch(fetchTaskStats());
+    }, [dispatch]);
 
     const fetchEmployeeProfile = async () => {
         try {
@@ -76,12 +83,58 @@ const EmployeeDashboardPage = () => {
     }
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <>
+            <div className="container mx-auto px-4 py-8">
+                <div className="bg-white rounded-lg shadow-md overflow-hidden">
                 <div className="bg-gradient-to-r from-blue-500 to-blue-700 p-6">
                     <h1 className="text-2xl font-bold text-white">Employee Dashboard</h1>
                     <p className="text-blue-100">Welcome back, {profile?.name}</p>
                 </div>
+
+                {/* Task Overview Section */}
+                {taskStats && (
+                    <div className="border-b border-gray-200 px-6 py-4 bg-gray-50">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-medium text-gray-900">My Tasks Overview</h3>
+                            <Link 
+                                to="/employee/tasks" 
+                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                            >
+                                View All Tasks
+                            </Link>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="text-center">
+                                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 mx-auto mb-2">
+                                    <FaTasks size={16} />
+                                </div>
+                                <div className="text-xl font-bold text-gray-900">{taskStats.totalTasks || 0}</div>
+                                <div className="text-xs text-gray-600">Total Tasks</div>
+                            </div>
+                            <div className="text-center">
+                                <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600 mx-auto mb-2">
+                                    <FaClock size={16} />
+                                </div>
+                                <div className="text-xl font-bold text-yellow-600">{taskStats.pending || 0}</div>
+                                <div className="text-xs text-gray-600">Pending</div>
+                            </div>
+                            <div className="text-center">
+                                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mx-auto mb-2">
+                                    <FaClock size={16} />
+                                </div>
+                                <div className="text-xl font-bold text-blue-600">{taskStats.inProgress || 0}</div>
+                                <div className="text-xs text-gray-600">In Progress</div>
+                            </div>
+                            <div className="text-center">
+                                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 mx-auto mb-2">
+                                    <FaCheckCircle size={16} />
+                                </div>
+                                <div className="text-xl font-bold text-green-600">{taskStats.completed || 0}</div>
+                                <div className="text-xs text-gray-600">Completed</div>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 
                 <div className="p-6">
                     <div className="flex flex-col md:flex-row gap-8">
@@ -283,8 +336,27 @@ const EmployeeDashboardPage = () => {
                         </div>
                     </div>
                 </div>
+                </div>
             </div>
-        </div>
+
+            {/* AI Chatbot Toggle Button - Placed below profile information */}
+            <div className="container mx-auto px-4 py-4 flex justify-center">
+                <button
+                    onClick={() => setShowChatbot(true)}
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                    title="Open AI Assistant"
+                >
+                    <FaRobot size={20} />
+                    <span>Chat with AI Assistant</span>
+                </button>
+            </div>
+
+            {/* AI Chatbot */}
+            <AIChatbot 
+                isOpen={showChatbot} 
+                onClose={() => setShowChatbot(false)} 
+            />
+        </>
     );
 };
 

@@ -10,7 +10,7 @@ const AllEmployeePage = () => {
     const [emps, setEmps] = useState([])
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState('')
-    
+
     const fetchAllEmployees = async () => {
         try {
             setLoading(true)
@@ -50,10 +50,10 @@ const AllEmployeePage = () => {
             toast.error(error?.response?.data?.error || error.message)
         }
     }
-    
+
     // Filter employees based on search term
-    const filteredEmployees = emps.filter(emp => 
-        emp.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const filteredEmployees = emps.filter(emp =>
+        emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         emp.empId.toLowerCase().includes(searchTerm.toLowerCase())
     )
@@ -66,13 +66,13 @@ const AllEmployeePage = () => {
                     <h1 className="text-2xl font-pbold text-gray-800">Employee Directory</h1>
                     <p className="text-gray-500">Manage your employees</p>
                 </div>
-                
-                <Link to="/add-employee" className="btn btn-primary mt-3 md:mt-0 flex items-center gap-2">
+
+                <Link to="/manager/add-employee" className="btn btn-primary mt-3 md:mt-0 flex items-center gap-2">
                     <FaPlus size={14} />
                     <span>Add Employee</span>
                 </Link>
             </div>
-            
+
             {/* Search and filter section */}
             <div className="card p-4 mb-6">
                 <div className="relative">
@@ -86,7 +86,7 @@ const AllEmployeePage = () => {
                     <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 </div>
             </div>
-            
+
             {/* Employees table */}
             <div className="card overflow-hidden">
                 {loading ? (

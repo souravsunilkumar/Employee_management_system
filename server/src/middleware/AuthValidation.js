@@ -3,6 +3,9 @@ const config = require("../config/config");
 
 exports.AuthValidationMiddleware = (req, res, next) => {
   try {
+    console.log('=== AUTH VALIDATION MIDDLEWARE ===');
+    console.log('Headers:', req.headers);
+    
     const auth_token = req.headers["authorization"] || "";
     if (!auth_token || !auth_token.startsWith("Bearer ")) {
       throw new Error("Please Login First");
@@ -12,10 +15,22 @@ exports.AuthValidationMiddleware = (req, res, next) => {
     if (!token) {
       throw new Error("Enter Valid Token");
     }
-    const payload = jwt.verify(token, config.jwt_auth_secret);
     
-    // Add user info to request object
-    req.user = payload.userId;
+    console.log('Token found, verifying...');
+    const payload = jwt.verify(token, config.jwt_auth_secret);
+    console.log('JWT Payload:', payload);
+    
+    // Set user information on the request object
+    // This is critical for all role-based middleware
+    req.user = {
+      id: payload.userId || payload.id,
+      role: payload.role,
+      email: payload.email,
+      userType: payload.userType
+    };
+    
+    // For backward compatibility with existing code
+    req.userId = payload.userId || payload.id;
     req.userType = payload.userType;
     req.role = payload.role;
     
@@ -24,8 +39,17 @@ exports.AuthValidationMiddleware = (req, res, next) => {
       req.managerId = payload.managerId;
     }
     
+    console.log('User authenticated:', {
+      id: req.user.id,
+      role: req.user.role,
+      userType: req.user.userType,
+      email: req.user.email
+    });
+    console.log('=== END AUTH VALIDATION ===');
+    
     next();
   } catch (error) {
-    res.status(400).send({ error: error.message });
+    console.error('Authentication error:', error.message);
+    res.status(401).send({ error: error.message });
   }
 };

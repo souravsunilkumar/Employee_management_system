@@ -42,13 +42,29 @@ exports.registerUser = async (req, res) => {
 
 exports.UserProfile = async (req, res) => {
   try {
+    console.log('=== USER PROFILE REQUEST ===');
+    console.log('User object:', req.user);
+    console.log('UserType:', req.userType);
+    console.log('UserId:', req.user?.id || req.userId);
+    
+    // Get the user ID from either the new or old structure
+    const userId = req.user?.id || req.userId;
+    if (!userId) {
+      console.log('User ID not found in request');
+      return res.status(401).json({ error: 'Authentication failed. Please log in again.' });
+    }
+    
     // Handle different user types
-    if (req.userType === config.userTypes.EMPLOYEE) {
+    const userType = req.user?.userType || req.userType;
+    
+    if (userType === config.userTypes.EMPLOYEE) {
+      console.log('Fetching employee profile for ID:', userId);
       // For employees, return their own profile
-      const employee = await EmpModel.findById(req.user)
+      const employee = await EmpModel.findById(userId)
         .select("name email empId role mobile address image salary -_id");
       
       if (!employee) {
+        console.log('Employee profile not found');
         throw new Error("Employee profile not found");
       }
       
@@ -64,11 +80,13 @@ exports.UserProfile = async (req, res) => {
         userType: config.userTypes.EMPLOYEE 
       });
     } else {
+      console.log('Fetching manager profile for ID:', userId);
       // For managers/admins, return their profile and employee count
-      const user = await UserModel.findById(req.user).select("name email role -_id");
-      const employees = await EmpModel.countDocuments({ user: req.user });
+      const user = await UserModel.findById(userId).select("name email role -_id");
+      const employees = await EmpModel.countDocuments({ user: userId });
       
       if (!user) {
+        console.log('Manager profile not found');
         throw new Error("User profile not found");
       }
       
@@ -80,6 +98,7 @@ exports.UserProfile = async (req, res) => {
       });
     }
   } catch (error) {
+    console.error('Profile error:', error.message);
     res.status(400).send({ error: error.message });
   }
 };
@@ -186,90 +205,168 @@ exports.addEmployee = async (req, res) => {
 
 exports.AllEmployees = async (req, res) => {
   try {
-    const employees = await EmpModel.find({ user: req.user });
+    console.log('=== FETCHING ALL EMPLOYEES ===');
+    // Get the user ID from either the new or old structure
+    const userId = req.user?.id || req.userId;
+    if (!userId) {
+      console.log('User ID not found in request');
+      return res.status(401).json({ error: 'Authentication failed. Please log in again.' });
+    }
+    
+    console.log('Fetching employees for manager ID:', userId);
+    const employees = await EmpModel.find({ user: userId });
+    console.log('Found', employees.length, 'employees');
+    
     res.status(200).send(employees);
   } catch (error) {
+    console.error('Error fetching employees:', error.message);
     res.status(400).send({ error: error.message });
   }
 };
 
 exports.DeleteEmployee = async (req, res) => {
   try {
+    console.log('=== DELETE EMPLOYEE REQUEST ===');
     const id = req.params.id;
+    console.log('Employee ID to delete:', id);
+    
+    // Get the user ID from either the new or old structure
+    const userId = req.user?.id || req.userId;
+    if (!userId) {
+      console.log('User ID not found in request');
+      return res.status(401).json({ error: 'Authentication failed. Please log in again.' });
+    }
     
     // Check if employee exists and belongs to the current user
-    const doc = await EmpModel.findOne({ _id: id, user: req.user });
+    console.log('Checking if employee belongs to manager:', userId);
+    const doc = await EmpModel.findOne({ _id: id, user: userId });
     
     if (!doc) {
+      console.log('Employee not found or permission denied');
       throw new Error("Employee not found or you don't have permission to delete it");
     }
 
+    console.log('Deleting employee...');
     await EmpModel.findByIdAndDelete(id);
+    console.log('Employee deleted successfully');
+    
     res.status(200).send({ message: "Employee Deleted" });
   } catch (error) {
+    console.error('Error deleting employee:', error.message);
     res.status(400).send({ error: error.message });
   }
 };
 
 exports.GetEmployee = async (req, res) => {
   try {
+    console.log('=== GET EMPLOYEE REQUEST ===');
     const id = req.params.id;
+    console.log('Employee ID requested:', id);
     
-    // Find employee by ID and ensure it belongs to the current user
-    const employee = await EmpModel.findOne({ _id: id, user: req.user });
+    // Get the user ID from either the new or old structure
+    const userId = req.user?.id || req.userId;
+    if (!userId) {
+      console.log('User ID not found in request');
+      return res.status(401).json({ error: 'Authentication failed. Please log in again.' });
+    }
+    
+    // Check if this is an employee accessing their own data or a manager
+    const userType = req.user?.userType || req.userType;
+    
+    let employee;
+    if (userType === config.userTypes.EMPLOYEE) {
+      console.log('Employee accessing their own profile');
+      // Employees can only access their own profile
+      if (id !== userId) {
+        console.log('Access denied: Employee can only view their own profile');
+        return res.status(403).json({ error: 'Access denied. You can only view your own profile.' });
+      }
+      employee = await EmpModel.findById(id);
+    } else {
+      console.log('Manager accessing employee profile');
+      // Find employee by ID and ensure it belongs to the current user (manager)
+      employee = await EmpModel.findOne({ _id: id, user: userId });
+    }
     
     if (!employee) {
+      console.log('Employee not found');
       throw new Error("Employee not found or you don't have permission to view it");
     }
 
+    console.log('Employee found, returning data');
     res.status(200).send(employee);
   } catch (error) {
+    console.error('Error fetching employee:', error.message);
     res.status(400).send({ error: error.message });
   }
 };
 
 exports.UpdateEmployee = async (req, res) => {
   try {
+    console.log('=== UPDATE EMPLOYEE REQUEST ===');
     const id = req.params.id;
     const { hasLoginAccess, password, ...employeeData } = req.body;
+    console.log('Employee ID to update:', id);
+    
+    // Get the user ID and type from either the new or old structure
+    const userId = req.user?.id || req.userId;
+    const userType = req.user?.userType || req.userType;
+    
+    if (!userId) {
+      console.log('User ID not found in request');
+      return res.status(401).json({ error: 'Authentication failed. Please log in again.' });
+    }
+    
+    console.log('User type:', userType);
+    console.log('User ID:', userId);
     
     // Check if employee exists
     let employee;
     
-    if (req.userType === config.userTypes.EMPLOYEE) {
+    if (userType === config.userTypes.EMPLOYEE) {
+      console.log('Employee updating their own profile');
       // Employees can only update their own profile
-      if (req.user !== id) {
+      if (userId !== id) {
+        console.log('Access denied: Employee can only update their own profile');
         throw new Error("You can only update your own profile");
       }
       employee = await EmpModel.findById(id);
     } else {
+      console.log('Manager updating employee profile');
       // Managers can update their employees
-      employee = await EmpModel.findOne({ _id: id, user: req.user });
+      employee = await EmpModel.findOne({ _id: id, user: userId });
     }
     
     if (!employee) {
+      console.log('Employee not found or permission denied');
       throw new Error("Employee not found or you don't have permission to update it");
     }
 
+    console.log('Employee found, preparing update data');
     // Prepare update data
     const updateData = { ...employeeData };
     
     // Handle login access changes (only managers can change this)
-    if (req.userType === "manager" && hasLoginAccess !== undefined) {
+    if (userType === "manager" && hasLoginAccess !== undefined) {
+      console.log('Manager updating login access:', hasLoginAccess);
       updateData.hasLoginAccess = hasLoginAccess;
       
       // If enabling login access and password is provided, update password
       if (hasLoginAccess && password) {
+        console.log('Setting new password for employee');
         updateData.password = password;
       } else if (hasLoginAccess && !employee.password && !password) {
         // If enabling login but no password exists or provided
+        console.log('Error: Password required for login access');
         throw new Error("Password is required when enabling login access");
       }
-    } else if (req.userType === config.userTypes.EMPLOYEE && password) {
+    } else if (userType === config.userTypes.EMPLOYEE && password) {
+      console.log('Employee updating their password');
       // Employees can update their own password
       updateData.password = password;
     }
 
+    console.log('Updating employee with new data');
     // Update the employee with the new data
     const updatedEmployee = await EmpModel.findByIdAndUpdate(
       id,
@@ -281,11 +378,13 @@ exports.UpdateEmployee = async (req, res) => {
     const responseEmployee = updatedEmployee.toObject();
     delete responseEmployee.password;
 
+    console.log('Employee updated successfully');
     res.status(200).send({ 
       message: "Employee Updated Successfully", 
       employee: responseEmployee 
     });
   } catch (error) {
+    console.error('Error updating employee:', error.message);
     res.status(400).send({ error: error.message });
   }
 };

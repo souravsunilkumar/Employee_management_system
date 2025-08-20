@@ -2,7 +2,7 @@ import React from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
-import ProtectedLayout from './layout/ProtectedLayout'
+import ManagerLayout from './layout/ManagerLayout'
 import EmployeeLayout from './layout/EmployeeLayout'
 import DashboardPage from './pages/DashboardPage'
 import ManagerDashboardPage from './pages/ManagerDashboardPage'
@@ -11,6 +11,11 @@ import AllEmployeesPage from './pages/AllEmployeePage'
 import UpdateEmployeePage from './pages/UpdateEmployeePage'
 import EmployeeDashboardPage from './pages/EmployeeDashboardPage'
 import EmployeeChangePasswordPage from './pages/EmployeeChangePasswordPage'
+import AssignTaskPage from './pages/AssignTaskPage'
+import ManagerTasksPage from './pages/ManagerTasksPage'
+import ReviewTaskPage from './pages/ReviewTaskPage'
+import MyTasksPage from './pages/MyTasksPage'
+import TaskDetailsPage from './pages/TaskDetailsPage'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import 'react-toastify/dist/ReactToastify.css'
@@ -40,9 +45,13 @@ const App = () => {
         <Route path='/' element={<RoleBasedRedirect />} />
         
         {/* Manager/Admin Routes */}
-        <Route path='/manager' element={<ProtectedLayout />}>
+        <Route path='/manager' element={<ManagerLayout />}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path='dashboard' element={<ManagerDashboardPage />} />
+          <Route path='assign-task' element={<AssignTaskPage />} />
+          <Route path='tasks' element={<ManagerTasksPage />} />
+          <Route path='task/:taskId' element={<TaskDetailsPage />} />
+          <Route path='review-task/:taskId' element={<ReviewTaskPage />} />
           <Route path='add-employee' element={<AddEmployeePage />} />
           <Route path='employees' element={<AllEmployeesPage />} />
           <Route path='update-employee/:id' element={<UpdateEmployeePage />} />
@@ -52,6 +61,8 @@ const App = () => {
         <Route path='/employee' element={<EmployeeLayout />}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path='dashboard' element={<EmployeeDashboardPage />} />
+          <Route path='tasks' element={<MyTasksPage />} />
+          <Route path='task/:taskId' element={<TaskDetailsPage />} />
           <Route path='change-password' element={<EmployeeChangePasswordPage />} />
         </Route>
         

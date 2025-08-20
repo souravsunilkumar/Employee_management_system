@@ -73,6 +73,12 @@ const Navbar = () => {
                                 <Link to={'/manager/dashboard'} className={`${isActive('/manager/dashboard')} font-pmedium transition-colors duration-200`}>
                                     Dashboard
                                 </Link>
+                                <Link to={'/manager/assign-task'} className={`${isActive('/manager/assign-task')} font-pmedium transition-colors duration-200`}>
+                                    Assign Task
+                                </Link>
+                                <Link to={'/manager/tasks'} className={`${isActive('/manager/tasks')} font-pmedium transition-colors duration-200`}>
+                                    Manage Tasks
+                                </Link>
                                 <Link to={'/manager/add-employee'} className={`${isActive('/manager/add-employee')} font-pmedium transition-colors duration-200`}>
                                     Add Employee
                                 </Link>
@@ -87,6 +93,9 @@ const Navbar = () => {
                             <>
                                 <Link to={'/employee/dashboard'} className={`${isActive('/employee/dashboard')} font-pmedium transition-colors duration-200`}>
                                     Dashboard
+                                </Link>
+                                <Link to={'/employee/tasks'} className={`${isActive('/employee/tasks')} font-pmedium transition-colors duration-200`}>
+                                    My Tasks
                                 </Link>
                                 <Link to={'/employee/change-password'} className={`${isActive('/employee/change-password')} font-pmedium transition-colors duration-200`}>
                                     Change Password
@@ -129,6 +138,20 @@ const Navbar = () => {
                                         Dashboard
                                     </Link>
                                     <Link 
+                                        to={'/manager/assign-task'} 
+                                        className={`${isActive('/manager/assign-task')} py-2 px-3 rounded-md font-pmedium`}
+                                        onClick={() => setIsMenuOpen(false)}
+                                    >
+                                        Assign Task
+                                    </Link>
+                                    <Link 
+                                        to={'/manager/tasks'} 
+                                        className={`${isActive('/manager/tasks')} py-2 px-3 rounded-md font-pmedium`}
+                                        onClick={() => setIsMenuOpen(false)}
+                                    >
+                                        Manage Tasks
+                                    </Link>
+                                    <Link 
                                         to={'/manager/add-employee'} 
                                         className={`${isActive('/manager/add-employee')} py-2 px-3 rounded-md font-pmedium`}
                                         onClick={() => setIsMenuOpen(false)}
@@ -154,6 +177,13 @@ const Navbar = () => {
                                         onClick={() => setIsMenuOpen(false)}
                                     >
                                         Dashboard
+                                    </Link>
+                                    <Link 
+                                        to={'/employee/tasks'} 
+                                        className={`${isActive('/employee/tasks')} py-2 px-3 rounded-md font-pmedium`}
+                                        onClick={() => setIsMenuOpen(false)}
+                                    >
+                                        My Tasks
                                     </Link>
                                     <Link 
                                         to={'/employee/change-password'} 
