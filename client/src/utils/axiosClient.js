@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const axiosClient = axios.create({
-  baseURL: "http://localhost:1234/api/v1",
+  baseURL: import.meta.env.VITE_API_URL,
 });
 
 // Add a request interceptor to automatically add the token to all requests
