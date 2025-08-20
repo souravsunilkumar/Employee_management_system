@@ -29,7 +29,8 @@ exports.registerUser = async (req, res) => {
     const token = jwt.sign({ 
       userId: user._id, 
       role: user.role,
-      userType: "manager" 
+      userType: "manager",
+      email: user.email
     }, config.jwt_auth_secret, {
       expiresIn: config.jwt_expiry,
     });
@@ -128,7 +129,8 @@ exports.loginUser = async (req, res) => {
       token = jwt.sign({
         userId: existUser._id,
         userType: config.userTypes.EMPLOYEE,
-        managerId: existUser.user
+        managerId: existUser.user,
+        email: existUser.email
       }, config.jwt_auth_secret, {
         expiresIn: config.jwt_expiry,
       });
@@ -149,7 +151,8 @@ exports.loginUser = async (req, res) => {
       token = jwt.sign({
         userId: existUser._id,
         role: existUser.role,
-        userType: "manager"
+        userType: "manager",
+        email: existUser.email
       }, config.jwt_auth_secret, {
         expiresIn: config.jwt_expiry,
       });
