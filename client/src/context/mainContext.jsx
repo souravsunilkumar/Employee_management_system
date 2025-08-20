@@ -40,6 +40,7 @@ export const MainContextProvider = ({ children }) => {
             const token = localStorage.getItem("token") || ''
             if (!token) return
 
+            // The /api/v1 prefix is now included in the baseURL
             const response = await axiosClient.get("/profile", {
                 headers: {
                     "Authorization": 'Bearer ' + token
