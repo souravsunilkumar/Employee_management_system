@@ -70,81 +70,141 @@ const AddEmployeePage = () => {
     }
 
     return (
-        <>
-
-            <Formik
-                initialValues={initialValues}
-                onSubmit={onSubmitHandler}
-                validationSchema={validationSchema}
-                enableReinitialize={true}
-            >
-                <Form className='w-[90%] mx-auto py-10 bg-zinc-100'>
-                    <div className="mb-3 flex item-center justify-end">
-                        <button type="submit" onClick={TestData} className="btn px-4 py-2 bg-indigo-500 text-white">Test</button>
-                    </div>
-                    <div className="mb-3">
-                        <label htmlFor="">Employee Name <span className="text-red-500"></span> </label>
-                        <Field type="text" name='name' className='w-full py-2 border border-gray-300 rounded
-                        outline-none px-3 placeholder:font-pmedium' placeholder='Enter Employee Name' />
-                        <ErrorMessage name='name' component={'p'} className='text-red-500
-                        text-xs' />
-                    </div>
-
-                    <div className="mb-3">
-                        <label htmlFor="">Employee Role <span className="text-red-500"></span> </label>
-                        <Field as='select' name='role' className='w-full py-2 border border-gray-300 rounded
-                        outline-none px-3 placeholder:font-pmedium'>
-                            <option value={''}>-----Select Role-----</option>
-                            {
-                                EmployeeRoles.map((cur, i) => {
-                                    return <option value={cur} key={i}>{cur}</option>
-                                })
-                            }
-                        </Field>
-                        <ErrorMessage name='role' component={'p'} className='text-red-500
-                        text-xs' />
-                    </div>
-                    <div className="mb-3">
-                        <label htmlFor="">Employee Salary <span className="text-red-500"></span> </label>
-                        <Field type="number" name='salary' className='w-full py-2 border border-gray-300 rounded
-                        outline-none px-3 placeholder:font-pmedium' placeholder='Enter Employee Salary' />
-                        <ErrorMessage name='salary' component={'p'} className='text-red-500
-                        text-xs' />
-                    </div>
-                    <div className="mb-3">
-                        <label htmlFor="">Employee Image <span className="text-red-500"></span> </label>
-                        <Field type="url" name='image' className='w-full py-2 border border-gray-300 rounded
-                        outline-none px-3 placeholder:font-pmedium' placeholder='Employee Image URL' />
-                        <ErrorMessage name='image' component={'p'} className='text-red-500
-                        text-xs' />
-                    </div>
-                    <div className="mb-3">
-                        <label htmlFor="">Employee Mobile No. <span className="text-red-500"></span> </label>
-                        <Field type="text" name='mobile' className='w-full py-2 border border-gray-300 rounded
-                        outline-none px-3 placeholder:font-pmedium' placeholder='Enter Employee Mobile No.' />
-                        <ErrorMessage name='mobile' component={'p'} className='text-red-500
-                        text-xs' />
-                    </div>
-                    <div className="mb-3">
-                        <label htmlFor="">Employee Email ID <span className="text-red-500"></span> </label>
-                        <Field type="email" name='email' className='w-full py-2 border border-gray-300 rounded
-                        outline-none px-3 placeholder:font-pmedium' placeholder='Enter Employee Email ID' />
-                        <ErrorMessage name='email' component={'p'} className='text-red-500
-                        text-xs' />
-                    </div>
-                    <div className="mb-3">
-                        <label htmlFor="">Employee Address <span className="text-red-500"></span> </label>
-                        <Field as='textarea' rows={2} name='address' className='w-full py-2 border border-gray-300 rounded
-                        outline-none px-3 placeholder:font-pmedium' placeholder='Enter Employee Address' />
-                        <ErrorMessage name='address' component={'p'} className='text-red-500
-                        text-xs' />
-                    </div>
-                    <div className="mb-3">
-                        <CustomLoaderButton isLoading={loading} text="Add Employee" />
-                    </div>
-                </Form>
-            </Formik>
-        </>
+        <div className="container mx-auto px-4 py-8">
+            <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-400 to-blue-600 p-6 text-white">
+                    <h2 className="text-2xl font-bold">Add New Employee</h2>
+                    <p className="text-white/80 mt-1">Enter employee details to add them to the system</p>
+                </div>
+                
+                <Formik
+                    initialValues={initialValues}
+                    onSubmit={onSubmitHandler}
+                    validationSchema={validationSchema}
+                    enableReinitialize={true}
+                >
+                    <Form className="p-6 bg-white">
+                        <div className="flex justify-end mb-6">
+                            <button 
+                                type="button" 
+                                onClick={TestData} 
+                                className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V8z" clipRule="evenodd" />
+                                </svg>
+                                Generate Test Data
+                            </button>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Employee Name */}
+                            <div>
+                                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Employee Name <span className="text-red-500">*</span></label>
+                                <Field 
+                                    type="text" 
+                                    id="name"
+                                    name="name" 
+                                    className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
+                                    placeholder="Enter employee name" 
+                                />
+                                <ErrorMessage name="name" component="p" className="text-red-500 text-xs mt-1" />
+                            </div>
+                            
+                            {/* Employee Role */}
+                            <div>
+                                <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">Employee Role <span className="text-red-500">*</span></label>
+                                <Field 
+                                    as="select" 
+                                    id="role"
+                                    name="role" 
+                                    className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white"
+                                >
+                                    <option value="">-- Select Role --</option>
+                                    {EmployeeRoles.map((role, index) => (
+                                        <option value={role} key={index}>{role}</option>
+                                    ))}
+                                </Field>
+                                <ErrorMessage name="role" component="p" className="text-red-500 text-xs mt-1" />
+                            </div>
+                            
+                            {/* Employee Salary */}
+                            <div>
+                                <label htmlFor="salary" className="block text-sm font-medium text-gray-700 mb-1">Salary <span className="text-red-500">*</span></label>
+                                <Field 
+                                    type="number" 
+                                    id="salary"
+                                    name="salary" 
+                                    className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
+                                    placeholder="Enter salary amount" 
+                                />
+                                <ErrorMessage name="salary" component="p" className="text-red-500 text-xs mt-1" />
+                            </div>
+                            
+                            {/* Employee Image */}
+                            <div>
+                                <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-1">Profile Image URL <span className="text-red-500">*</span></label>
+                                <Field 
+                                    type="url" 
+                                    id="image"
+                                    name="image" 
+                                    className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
+                                    placeholder="Enter image URL" 
+                                />
+                                <ErrorMessage name="image" component="p" className="text-red-500 text-xs mt-1" />
+                            </div>
+                            
+                            {/* Employee Mobile */}
+                            <div>
+                                <label htmlFor="mobile" className="block text-sm font-medium text-gray-700 mb-1">Mobile Number <span className="text-red-500">*</span></label>
+                                <Field 
+                                    type="text" 
+                                    id="mobile"
+                                    name="mobile" 
+                                    className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
+                                    placeholder="Enter mobile number" 
+                                />
+                                <ErrorMessage name="mobile" component="p" className="text-red-500 text-xs mt-1" />
+                            </div>
+                            
+                            {/* Employee Email */}
+                            <div>
+                                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email Address <span className="text-red-500">*</span></label>
+                                <Field 
+                                    type="email" 
+                                    id="email"
+                                    name="email" 
+                                    className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
+                                    placeholder="Enter email address" 
+                                />
+                                <ErrorMessage name="email" component="p" className="text-red-500 text-xs mt-1" />
+                            </div>
+                        </div>
+                        
+                        {/* Employee Address - Full Width */}
+                        <div className="mt-6">
+                            <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">Address <span className="text-red-500">*</span></label>
+                            <Field 
+                                as="textarea" 
+                                id="address"
+                                name="address" 
+                                rows="3"
+                                className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
+                                placeholder="Enter employee address" 
+                            />
+                            <ErrorMessage name="address" component="p" className="text-red-500 text-xs mt-1" />
+                        </div>
+                        
+                        {/* Submit Button */}
+                        <div className="mt-8 flex justify-center">
+                            <div className="w-full md:w-1/2">
+                                <CustomLoaderButton isLoading={loading} text="Add Employee" />
+                            </div>
+                        </div>
+                    </Form>
+                </Formik>
+            </div>
+        </div>
     )
 }
 
